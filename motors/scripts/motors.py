@@ -6,8 +6,8 @@ import RPi.GPIO as GPIO
 import time
 
 #Constants for the robot
-wheelRad = .05
-robDiam  = .05
+wheelRad = 3.5
+robDiam  = 10.0
 
 #Pins for the motors
 MOTORRA = 12
@@ -15,7 +15,14 @@ MOTORRB = 16
 MOTORLA = 20
 MOTORLA = 21
 MOTORRE = 24
-MOTORRL = 25
+MOTORLE = 25
+
+GPIO.setup(MOTORRE, GPIO.OUT)
+GPIO.setup(MOTORLE, GPIO.OUT)     
+motorR = GPIO.PWM(MOTORRE, 50)
+motorL = GPIO.PWM(MOTORLE, 50)
+motorR.start(0)
+motorL.start(0)
 
 #Set velocities to 0 when there haven't been any messages 
 vr = 0
@@ -48,14 +55,12 @@ def callback(data):
         dirl2 = 0 
     
     #Scale values b/w 0 and 100
-    vr = abs(100 * vr)
-    vl = abs(100 * vl)
+    vr = abs((100 * vr) / ((2 + robDiam) / (2 * 3.5)))
+    vl = abs((100 * vl) / ((2 + robDiam) / (2 * 3.5)))
 
     #Set motor speed through GPIO, pulse enable to reach desired speed
-    motorR = GPIO.PWM(MOTORRE, vr)
-    motorL = GPIO.PWM(MOTORLE, vl) 
-    motorR.start(1)
-    motorL.start(1)
+    motorR.changeDutyCycle(vr)
+    motorL.changeDutyCycle(vl)
     
 def motors():
     #Initialize GPIO pins
@@ -63,9 +68,7 @@ def motors():
     GPIO.setup(MOTORRA, GPIO.OUT)
     GPIO.setup(MOTORRB, GPIO.OUT)
     GPIO.setup(MOTORLA, GPIO.OUT)
-    GPIO.setup(MOTORLB, GPIO.OUT)
-    GPIO.setup(MOTORRE, GPIO.OUT)
-    GPIO.setup(MOTORLE, GPIO.OUT)     
+    GPIO.setup(MOTORLB, GPIO.OUT) 
 
     #Initialize ros
     rospy.init_node('motors')
